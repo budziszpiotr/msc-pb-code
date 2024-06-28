@@ -1,0 +1,150 @@
+== STP-core functions ==
+
+Raw .tdf files (tomo data format) for Rat 77 reconstruction can be found under this link: [{{server}}/data/userdata15/panum_rats/rat_77/elettra_ct_data/rat_77_stitch_tomo Raw .tdf files Rat 77]<br>
+STP software code can be found under this link: [{{server}}/data/userdata26/panum_rats/Elettra/software/STP_1.6/src STP software directory]<br>
+
+== Run the code ==
+Environment with '''python version 2.7''' was created to run the following files. <br>
+The .yml file can be found in the previously mentioned elettra pipeline folder. <br>
+There are several functions within the scripts which do not work with newer versions. <br>
+A single sub-volume coming from rat_77_full_Z2.35_X-1.17_Y1.83 will be used for demonstration purpose. <br>
+This sub-volume consists of 1800 projections (0.1 degree angle incrementation) 20 dark field images and 20 flat field images. <br>
+
+All input variables were selected based on the batch file from elettra institute, which can be found under this link: 
+[{{server}}/data/userdata15/panum_rats/rat_77/elettra_ct_data/recons/lists/batch_tomo180_recon.bat  Batch file]	<br>
+
+Set the directory as follows to call each script directly: <br>
+<syntaxhighlight lang="python">
+cd /dtu/cfu/data/userdata26/panum_rats/Elettra/scripts/STP1.6/src/stp-core<br>
+</syntaxhighlight>
+
+=== exec_tdf2tiff.py ===
+Firstly, ''exec_tdf2tiff.py'' is used to vizualize the raw projections and sinograms from Z2.35_X-1.17_Y1.83 sub-volume. <br>
+
+Run the code with following variables in order to extract projections in .tiff format into a previously created folder:
+<syntaxhighlight lang="python">
+python exec_tdf2tiff.py 0 -1 /dtu/cfu/data/userdata15/panum_rats/rat_77/elettra_ct_data/rat_77_stitch_tomo/rat_77_full_Z2.35_X-1.17_Y1.83.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/raw_projections tomo dark flat True True 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/raw_projections/log.txt<br>
+</syntaxhighlight>
+
+The logbook file ''log.txt'' is placed in the same folder and can be inspected during the extraction process for missing data. <br>
+
+Raw projections in form of .tif files extracted from the .tdf file can be found here: [{{server}}/data/userdata18/s220464/storage/elettra_pipeline/raw_projections Raw projections]<br>
+
+[[File:rat_77_raw_projections.png|1000px]]
+
+Change argv[7] from True to False for extraction of sinograms instead of projections into a different folder. <br>
+
+<syntaxhighlight lang="python">
+python exec_tdf2tiff.py 0 -1 /dtu/cfu/data/userdata15/panum_rats/rat_77/elettra_ct_data/rat_77_stitch_tomo/rat_77_full_Z2.35_X-1.17_Y1.83.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/raw_sinograms tomo dark flat False True 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/raw_sinograms/log.txt<br>
+</syntaxhighlight>
+
+[[File:rat_77_raw_sinogram.png|1000px]]
+
+=== exec_preprocessing.py ===
+The same raw .tdf file will now be used as an input to ''exec_preprocessing.py'' function. 
+
+<syntaxhighlight lang="python">
+python exec_preprocessing.py 0 1799 /dtu/cfu/data/userdata15/panum_rats/rat_77/elettra_ct_data/rat_77_stitch_tomo/rat_77_full_Z2.35_X-1.17_Y1.83.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr.tdf 0 0 False False 0 False False 0 False False 3600 "none:0;0" False 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_data/log_00.txt
+</syntaxhighlight>
+
+Preprocessed file corr.tdf with logbook can be found here: [{{server}}/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_data Preprocessed .tdf with logbook]<br> 
+
+We can once again use the 'exec_tdf2tiff.py' script to extract projections from the preprocessed .tdf file and observe how flat field correction was applied to raw projections during the process. This time arguments 'flat' and 'dark' are set to '-' since they are no longer present in preprocessed .tdf input file. 
+
+[[File:rat_77_preprocessing_effect.png|1000px]]
+
+Normalization Process: <br>
+* Dark Field Correction: Corrects for the dark current of the detector, i.e., the signal detected when no radiation is present. This correction is done by subtracting the dark field image from each projection image.
+* Flat Field Correction: Corrects for variations in the detector response and beam intensity. This is achieved by normalizing the projection images against the flat field image (acquired by imaging the beam without a sample). <br>
+
+
+Learn more from the scripts within the preprocessing folder: 
+[{{server}}/data/userdata26/panum_rats/Elettra/scripts/STP1.6/src/stp-core/preprocess/ Preprocessing scripts]<br>
+
+
+<syntaxhighlight lang="python">
+python exec_tdf2tiff.py 0 -1 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_projections tomo - - True True 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_projections/log.txt<br>
+</syntaxhighlight>
+
+Preprocessed projection tiff files extracted from corr.tdf file can be found here: 
+[{{server}}/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_projections Preprocessed projections]<br>
+
+<syntaxhighlight lang="python">
+python exec_tdf2tiff.py 0 -1 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_sinograms tomo - - False True 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_sinograms/log.txt<br>
+</syntaxhighlight>
+
+Preprocessed sinogram tiff files extracted from corr.tdf file can be found here: 
+[{{server}}/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_sinograms Preprocessed sinograms]<br>
+
+=== exec_phaseretrieval.py ===
+
+Phase retrieved core.tdf files from the study were later used as an input to ''exec_phaseretrieval.py'' function. <br>
+
+<syntaxhighlight lang="python">
+python exec_phaseretrieval.py 0 1799 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/preprocessed_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr_phrt.tdf 0 1.0E-09 0.8E-07 20.7 180 1.6 True 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr_phrt_log.txt
+</syntaxhighlight>
+
+Output corr_phrt.tdf: [{{server}}/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_data Phaseretrieved corr_phrt.tdf file]<br>
+
+The input causes the script to process images indexed from 0 to 1799 using the specified phase retrieval method and parameters, and save the processed images in the specified output HDF5 file. The process is logged, including time taken for each image's CPU and I/O operations.<br>
+
+The script supports different phase retrieval algorithms, specifically the Transport of Intensity Equation (TIE) based methods (tiehom and tiehom2020) and the Phase Retrieval Transfer function (phrt) method. <br>
+
+Arguments: <br>
+* 0 and 1799: The range of image indices to process.
+* Input and output HDF5 file paths: Specifies where to read the raw images from and where to write the processed images to.
+* Phase retrieval method and parameters: Indicates which phase retrieval algorithm to use and provides necessary parameters such as regularization, delta/beta ratio, energy, distance, and pixel size.
+* The 180 argument represents the distance parameter, which is the sample-to-detector distance 
+* The 1.6 argument represents the pixel size parameter, which is the size of the detector element. 
+* True for padding: Indicates whether to use padding in the Fourier domain to avoid aliasing.
+* 6: Number of threads (processes) for parallel processing.
+* Log file path: Specifies where to write log messages about the processing.
+* Function _process and _write_data:
+** _process: This function is the workhorse that iterates over the specified range of images, reads each image, applies the phase retrieval algorithm, and then calls _write_data to write the processed image to the output HDF5 file.
+** _write_data: Handles the atomic write operation to the output HDF5 file, ensuring data integrity and updating the dataset attributes such as minimum and maximum pixel values. It also logs the processing time for each image. <br>
+
+
+<syntaxhighlight lang="python">
+if (method == 0):
+			# Paganin 2020:
+			plan = tiehom_plan (im, param1, param2, energy, distance, pixsize, pad)
+</syntaxhighlight>
+
+tiehom_plan function applies the TIE-HOM phase retrieval algorithm to a single image. It:
+*	Optionally pads the image for better boundary handling in the Fourier domain.
+*	Performs a real Fourier transform of the padded image.
+*	Applies the precomputed phase retrieval formula in the Fourier domain.
+*	Performs an inverse real Fourier transform to return to the spatial domain.
+*	Applies a logarithmic transformation to retrieve the phase, scaling by the attenuation coefficient.
+*	Crops the image back to its original dimensions if it was padded.
+
+
+Learn more from tiehom.py script within the phase retrieval folder: [{{server}}/data/userdata26/panum_rats/Elettra/scripts/STP1.6/src/stp-core/phaseretrieval/ Phase retrieval scripts]<br>
+
+After extraction using ''exec_tdf2tiff'', the files can be found in folders below:
+
+<syntaxhighlight lang="python">
+python exec_tdf2tiff.py 0 -1 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr_phrt.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_projections tomo - - True True 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_projections/log.txt<br>
+</syntaxhighlight>
+
+Projections: [{{server}}/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_projections Projections from corr_phrt.tdf]<br>
+
+<syntaxhighlight lang="python">
+python exec_tdf2tiff.py 0 -1 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr_phrt.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_sinograms tomo - - False True 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_sinograms/log.txt<br>
+</syntaxhighlight>
+
+
+=== exec_reconstruct_pb.py ===
+
+Firstly, add the path to the ''pytvtomo'' folder as follows: <br>
+<syntaxhighlight lang="python">
+export PYTHONPATH=$PYTHONPATH:/dtu/cfu/data/userdata26/panum_rats/Elettra/scripts/STP1.6/src/pytvtomo
+</syntaxhighlight>
+
+Run the code with following variables:
+<syntaxhighlight lang="python">
+python exec_reconstruct_pb.py 0 2048 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/phaseretrieved_data/rat_77_full_Z2.35_X-1.17_Y1.83_corr_phrt.tdf /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/reconstructions 3.14159265358979 2 ram-lak 1 True False True slice False False False 0 False False 0 False False 0 0 0 False "rivers:3;0" False 0 FBP_CUDA 1 1 False "homomorphic:0.8;0.2" "linear8:-0.01;0.01" "0:0:0:0" 0 1799 True 0 False 6 /dtu/cfu/data/userdata18/s220464/storage/elettra_pipeline/reconstructions/recon_log_00.txt
+</syntaxhighlight>
+
+
+
